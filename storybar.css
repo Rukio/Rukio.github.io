@@ -301,7 +301,7 @@
 	-webkit-box-pack: justify;
 	    -ms-flex-pack: justify;
 	        justify-content: space-between;
-	max-height: 479px;
+	max-height: 485px;
 	overflow-y: auto;
 	padding: 15px 15px 0px;
 	background-color: #fff;
@@ -359,7 +359,7 @@
 	}
 }
 
-@media (max-height: 530px) {
+@media (max-height: 533px) {
 	.story-modal-products__list {
 		max-height: calc(100vh - 55px);
 	}
