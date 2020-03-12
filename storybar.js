@@ -88,6 +88,7 @@ window.onload = () => {
             storyLaunchAutoplay(autoplayDuration)
         }
         storySlideIsDown = false
+        e.preventDefault()
     }
 
     function getTouchX(e) {
