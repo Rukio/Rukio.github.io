@@ -74,6 +74,7 @@ window.onload = () => {
     }
 
     function touchUp(e) {
+        e.preventDefault()
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
             if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
@@ -88,7 +89,6 @@ window.onload = () => {
             storyLaunchAutoplay(autoplayDuration)
         }
         storySlideIsDown = false
-        e.preventDefault()
     }
 
     function getTouchX(e) {
