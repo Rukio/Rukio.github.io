@@ -371,8 +371,8 @@
 }
 
 @media (max-height: 665px), (max-width: 568px) {
-	.story-modal__item {
-		height: 100vh;
+	.story-modal__item, .story-modal, .story-modal-list {
+		height: 100%;
 	}
 }
 
