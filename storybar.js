@@ -15,6 +15,7 @@ const storyWidgetInit = (className) => {
     const storyModalPurchaseButtons = storyWidget.querySelectorAll('.story-modal-purchase')
     const storyModalProductsWrappers = storyWidget.querySelectorAll('.story-modal-products__wrapper')
     const autoplayDuration = 4000
+    const swipeCancelTime = 600
     let lastDirection = -1
     let storyAutoplayInterval = null
     let storyModalItemsLength = storyModalImgs.length
@@ -24,6 +25,7 @@ const storyWidgetInit = (className) => {
     let storySlideIsDown = false
     let storyUgcsMoved = false
     let storyUgcsIsDown = false
+    let lastTouchDownMillis = 0
     let storySwipeMin = 40
     let storyUgcsStartX
     let storyUgcsScrollLeft
@@ -33,10 +35,14 @@ const storyWidgetInit = (className) => {
         storyLastTouchDownY = getTouchY(e)
         storySlideIsDown = true
         storyStopAutoplay()
+        lastTouchDownMillis = Date.now()
     }
 
     const touchUp = (e) => {
         e.preventDefault()
+        if (Date.now() - lastTouchDownMillis > swipeCancelTime) {
+            return
+        } 
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
             if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
@@ -259,6 +265,9 @@ const storyWidgetInit = (className) => {
                 hideProducts(e.target)
             }
         })
+
+        const close = item.querySelector('.story-modal-products-close')
+        close.addEventListener('click', () => { hideProducts(item) })
     })
 
     storyModalClose.addEventListener('click', () => {
