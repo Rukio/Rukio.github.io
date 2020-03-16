@@ -219,12 +219,20 @@ const storyWidgetInit = (className) => {
                 if (window.innerWidth <= 568 || (window.innerHeight <= 665 && window.innerWidth <= 568)) {
                     document.body.requestFullscreen().then(() => {
                         resolve()
-                    }).catch(() => console.log('Could not enter fullscreen mode'))
+                    }).catch(() => {
+                        console.log('Could not enter fullscreen mode')
+                        resolve()
+                    })
+                } else {
+                    resolve()
                 }
             } else {
                 document.exitFullscreen().then(() => {
                     resolve()
-                }).catch(() => console.log('Could not exit fullscreen mode'))
+                }).catch(() => {
+                    console.log('Could not exit fullscreen mode')
+                    resolve()
+                })
             }
         })
     }
