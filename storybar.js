@@ -213,6 +213,22 @@ const storyWidgetInit = (className) => {
         storyUgcsContainer.scrollLeft = storyUgcsScrollLeft - walk
     }
 
+    const toggleFullScreen = (flag) => {
+        return new Promise((resolve, reject) => {
+            if (flag) {
+                if (window.innerWidth <= 568 || (window.innerHeight <= 665 && window.innerWidth <= 568)) {
+                    document.body.requestFullscreen().then(() => {
+                        resolve()
+                    }).catch(() => console.log('Could not enter fullscreen mode'))
+                }
+            } else {
+                document.exitFullscreen().then(() => {
+                    resolve()
+                }).catch(() => console.log('Could not exit fullscreen mode'))
+            }
+        })
+    }
+
     storyUgcsContainer.addEventListener('mousedown', storyUgcsTouchDown)
     storyUgcsContainer.addEventListener('touchstart', storyUgcsTouchDown)
     storyUgcsContainer.addEventListener('mouseleave', storyUgcsTouchUp)
@@ -231,9 +247,11 @@ const storyWidgetInit = (className) => {
                 storyUgcsMoved = false
                 return
             }
-            storySlideSwitch(i, true)
-            storyModalWrapper.classList.add('story-modal__wrapper_active')
-            storyLaunchAutoplay(autoplayDuration)
+            toggleFullScreen(true).then(() => {
+                storySlideSwitch(i, true)
+                storyModalWrapper.classList.add('story-modal__wrapper_active')
+                storyLaunchAutoplay(autoplayDuration)
+            })
         })
     })
 
@@ -272,6 +290,7 @@ const storyWidgetInit = (className) => {
 
     storyModalClose.addEventListener('click', () => {
         storyCloseModal()
+        toggleFullScreen(false)
     })
 
     console.log('Story widget loaded')
