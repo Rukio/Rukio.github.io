@@ -31,6 +31,7 @@ const storyWidgetInit = (className) => {
     let storyUgcsScrollLeft
 
     const touchDown = (e) => {
+        e.preventDefault()
         storyLastTouchDownX = getTouchX(e)
         storyLastTouchDownY = getTouchY(e)
         storySlideIsDown = true
@@ -215,24 +216,28 @@ const storyWidgetInit = (className) => {
 
     const toggleFullScreen = (flag) => {
         return new Promise((resolve, reject) => {
-            if (flag) {
-                if (window.innerWidth <= 568 || (window.innerHeight <= 665 && window.innerWidth <= 568)) {
-                    document.body.requestFullscreen().then(() => {
+            if (document.body.requestFullscreen) {
+                if (flag) {
+                    if (window.innerWidth <= 568 || (window.innerHeight <= 665 && window.innerWidth <= 568)) {
+                        document.body.requestFullscreen().then(() => {
+                            resolve()
+                        }).catch(() => {
+                            console.log('Could not enter fullscreen mode')
+                            resolve()
+                        })
+                    } else {
+                        resolve()
+                    }
+                } else {
+                    document.exitFullscreen().then(() => {
                         resolve()
                     }).catch(() => {
-                        console.log('Could not enter fullscreen mode')
+                        console.log('Could not exit fullscreen mode')
                         resolve()
                     })
-                } else {
-                    resolve()
                 }
             } else {
-                document.exitFullscreen().then(() => {
-                    resolve()
-                }).catch(() => {
-                    console.log('Could not exit fullscreen mode')
-                    resolve()
-                })
+                resolve()
             }
         })
     }

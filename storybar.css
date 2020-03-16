@@ -53,16 +53,14 @@
 	border-radius: 50%;
 	overflow: hidden;
 	margin: 0 auto;
-	border: 1px solid #dadada
+	border: 1px solid #dadada;
 }
 
 .story-img__item {
 	width: 100%;
 	height: 100%;
-	-o-object-fit: cover;
-	object-fit: cover;
-	-o-object-position: center;
-	   object-position: center;
+	background-size: cover;
+	background-position: center center;
 	border: 3px solid white;
 	border-radius: 50%
 }
