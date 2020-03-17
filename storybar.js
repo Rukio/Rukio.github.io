@@ -11,7 +11,6 @@ const storyWidgetInit = (className) => {
     const storyModalClose = storyWidget.querySelector('.story-modal-close')
     const storyModalImgs = storyWidget.querySelectorAll('.story-modal-img')
     const storyModalList = storyWidget.querySelector('.story-modal-list')
-    const storyProgressLayout = storyWidget.querySelector('.story-modal-progressbar')
     const storyProgressThumb = storyWidget.querySelector('.story-modal-progressbar__item')
     const storyModalPurchaseButtons = storyWidget.querySelectorAll('.story-modal-purchase')
     const storyModalProductsWrappers = storyWidget.querySelectorAll('.story-modal-products__wrapper')
@@ -27,6 +26,7 @@ const storyWidgetInit = (className) => {
     let storyPlayCurrentStarted = 0
     let storyAutoplayStopped = 0
     let storyTimePassed = 0
+    let progressAfterPause = 0
     let progressBarPaused = false
     let storyModalItemsLength = storyModalImgs.length
     let storyCurrentSlide = 0
@@ -200,7 +200,7 @@ const storyWidgetInit = (className) => {
             storySlideSwitch('next')
             storyPlayCurrentStarted = Date.now()
             storyLaunchAutoplay(autoplayDuration)
-        }, getStoryTimeRemaining(true))
+        }, getStoryTimeRemaining())
         storyPlayCurrentStarted = Date.now()
     }
 
@@ -216,15 +216,7 @@ const storyWidgetInit = (className) => {
         }, duration)
     }
 
-    const getStorySinceStarted = (isFromPause) => {
-        if (isFromPause) {
-            return storyAutoplayStopped - storyAutoplayStarted
-        } else {
-            return Date.now() - storyAutoplayStarted
-        }
-    }
-
-    const getStoryTimeRemaining = (isFromPause) => {
+    const getStoryTimeRemaining = () => {
         return autoplayDuration - storyTimePassed
     }
 
@@ -248,20 +240,25 @@ const storyWidgetInit = (className) => {
     }
 
     const pauseProgressBar = () => {
-        storyProgressThumb.style.width = getComputedStyle(storyProgressThumb).getPropertyValue('width')
+        progressAfterPause = getComputedStyle(storyProgressThumb, null).getPropertyValue('width')
+        storyProgressThumb.style.width = progressAfterPause
         progressBarPaused = true
     }
 
     const resumeProgressBar = () => {
         if (progressBarPaused) {
-            storyProgressThumb.setAttribute('style', `transition-duration: ${getStoryTimeRemaining(true)}ms`);
-            storyProgressThumb.style.width = '100%'
+            storyProgressThumb.setAttribute('style', '')
+            setTimeout(() => {
+                storyProgressThumb.setAttribute('style', `width: ${progressAfterPause}`)
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        storyProgressThumb.setAttribute('style', `transition-duration: ${getStoryTimeRemaining()}ms`);
+                        storyProgressThumb.style.width = '100%'
+                    })
+                })
+            })
             progressBarPaused = false
         }
-    }
-
-    const getProgressBarPercentage = () => {
-        return Number(getComputedStyle(storyProgressThumb).getPropertyValue('width').slice(0, -2)) * 100 / storyProgressLayout.offsetWidth
     }
 
     const storyCloseModal = () => {
