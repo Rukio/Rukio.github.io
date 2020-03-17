@@ -11,13 +11,23 @@ const storyWidgetInit = (className) => {
     const storyModalClose = storyWidget.querySelector('.story-modal-close')
     const storyModalImgs = storyWidget.querySelectorAll('.story-modal-img')
     const storyModalList = storyWidget.querySelector('.story-modal-list')
+    const storyProgressLayout = storyWidget.querySelector('.story-modal-progressbar')
     const storyProgressThumb = storyWidget.querySelector('.story-modal-progressbar__item')
     const storyModalPurchaseButtons = storyWidget.querySelectorAll('.story-modal-purchase')
     const storyModalProductsWrappers = storyWidget.querySelectorAll('.story-modal-products__wrapper')
+    const storyUgcsScrollSpeed = 0.8
     const autoplayDuration = 4000
     const swipeCancelTime = 600
+    const swipeDirectionSeparatorPoint = 28 /* 0 - 100 percentage */
     let lastDirection = -1
+    let autoplayResumeTimeout = null
     let storyAutoplayInterval = null
+    let swipeCancelTimeout = null
+    let storyAutoplayStarted = 0
+    let storyPlayCurrentStarted = 0
+    let storyAutoplayStopped = 0
+    let storyTimePassed = 0
+    let progressBarPaused = false
     let storyModalItemsLength = storyModalImgs.length
     let storyCurrentSlide = 0
     let storyLastTouchDownX = 0
@@ -35,19 +45,25 @@ const storyWidgetInit = (className) => {
         storyLastTouchDownX = getTouchX(e)
         storyLastTouchDownY = getTouchY(e)
         storySlideIsDown = true
-        storyStopAutoplay()
+        swipeCancelTimeout = setTimeout(storyStopAutoplay, swipeCancelTime)
         lastTouchDownMillis = Date.now()
     }
 
     const touchUp = (e) => {
+        clearTimeout(swipeCancelTimeout)
         e.preventDefault()
         if (Date.now() - lastTouchDownMillis > swipeCancelTime) {
             return
-        } 
+        }
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
             if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
                 slideDir = 'next'
+                if (getTouchX(e, true, true) >= swipeDirectionSeparatorPoint) {
+                    slideDir = 'next'
+                } else {
+                    slideDir = 'prev'
+                }
             } else {
                 if (Math.abs(storyLastTouchDownX - getTouchX(e)) < storySwipeMin) {
                     return
@@ -56,16 +72,32 @@ const storyWidgetInit = (className) => {
             }
             storySlideSwitch(slideDir)
             storyLaunchAutoplay(autoplayDuration)
+            storyAutoplayStarted = Date.now()
+            storyPlayCurrentStarted = Date.now()
         }
         storySlideIsDown = false
     }
 
-    const getTouchX = (e) => {
-        return e.changedTouches ? e.changedTouches[0].clientX : e.clientX
+    const getTouchX = (e, targetRelative, inPercent) => {
+        const point = e.changedTouches ? e.changedTouches[0].clientX : e.clientX
+        let roomWidth = targetRelative ? e.target.offsetWidth : window.innerWidth
+        if (!targetRelative) {
+            return inPercent ? point * 100 / roomWidth : point
+        } else {
+            const rect = e.target.getBoundingClientRect()
+            return inPercent ? (point - rect.left) * 100 / roomWidth : point - rect.left
+        }
     }
 
-    const getTouchY = (e) => {
-        return e.changedTouches ? e.changedTouches[0].clientY : e.clientY
+    const getTouchY = (e, targetRelative, inPercent) => {
+        const point = e.changedTouches ? e.changedTouches[0].clientY : e.clientY
+        let roomHeight = targetRelative ? e.target.offsetHeight : window.innerHeight
+        if (!targetRelative) {
+            return inPercent ? point * 100 / roomHeight : point
+        } else {
+            const rect = e.target.getBoundingClientRect()
+            return inPercent ? (point - rect.top) * 100 / roomHeight : point - rect.top
+        }
     }
 
     const rebaseItems = () => {
@@ -80,7 +112,6 @@ const storyWidgetInit = (className) => {
     }
 
     const storySlideSwitch = (type, isInstant) => {
-        const modalListWidth = storyModalList.clientWidth
         if (isInstant) {
             storyModalList.style.transition = 'none'
         } else {
@@ -149,33 +180,10 @@ const storyWidgetInit = (className) => {
                 storyInitProgressbar()
             }
         }
-    }
-
-    const storyLaunchAutoplay = (duration) => {
-        clearInterval(storyAutoplayInterval)
-        storyAutoplayInterval = setInterval(() => {
-            storySlideSwitch('next')
-        }, duration)
-    }
-
-    const storyStopAutoplay = () => {
-        clearInterval(storyAutoplayInterval)
-    }
-
-    const storyInitProgressbar = () => {
-        storyProgressThumb.setAttribute('style', '');
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                storyProgressThumb.setAttribute('style', `transition-duration: ${autoplayDuration}ms`);
-                storyProgressThumb.style.transform = `scaleX(1)`
-            })
-        })
-    }
-
-    const storyCloseModal = () => {
-        storyModalWrapper.classList.remove('story-modal__wrapper_active')
-        clearInterval(storyAutoplayInterval)
-        hideProducts(null, true)
+        storyTimePassed = 0
+        progressBarPaused = false
+        clearTimeout(swipeCancelTimeout)
+        clearTimeout(autoplayResumeTimeout)
     }
 
     const hideProducts = (wrapper, all) => {
@@ -186,8 +194,86 @@ const storyWidgetInit = (className) => {
         }
     }
 
+    const resumeAutoplay = () => {
+        resumeProgressBar()
+        autoplayResumeTimeout = setTimeout(() => {
+            storySlideSwitch('next')
+            storyPlayCurrentStarted = Date.now()
+            storyLaunchAutoplay(autoplayDuration)
+        }, getStoryTimeRemaining(true))
+        storyPlayCurrentStarted = Date.now()
+    }
+
     const showProducts = (wrapper) => {
         wrapper.style.display = 'flex'
+    }
+
+    const storyLaunchAutoplay = (duration) => {
+        clearInterval(storyAutoplayInterval)
+        storyAutoplayInterval = setInterval(() => {
+            storySlideSwitch('next')
+            storyPlayCurrentStarted = Date.now()
+        }, duration)
+    }
+
+    const getStorySinceStarted = (isFromPause) => {
+        if (isFromPause) {
+            return storyAutoplayStopped - storyAutoplayStarted
+        } else {
+            return Date.now() - storyAutoplayStarted
+        }
+    }
+
+    const getStoryTimeRemaining = (isFromPause) => {
+        return autoplayDuration - storyTimePassed
+    }
+
+    const storyStopAutoplay = () => {
+        if (!progressBarPaused) {
+            clearInterval(storyAutoplayInterval)
+            clearTimeout(autoplayResumeTimeout)
+            storyTimePassed += Date.now() - storyPlayCurrentStarted
+            pauseProgressBar()
+        }
+    }
+
+    const storyInitProgressbar = () => {
+        storyProgressThumb.setAttribute('style', 'width: 0');
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                storyProgressThumb.setAttribute('style', `transition-duration: ${autoplayDuration}ms`);
+                storyProgressThumb.style.width = `100%`
+            })
+        })
+    }
+
+    const pauseProgressBar = () => {
+        storyProgressThumb.style.width = getComputedStyle(storyProgressThumb).getPropertyValue('width')
+        progressBarPaused = true
+    }
+
+    const resumeProgressBar = () => {
+        if (progressBarPaused) {
+            storyProgressThumb.setAttribute('style', `transition-duration: ${getStoryTimeRemaining(true)}ms`);
+            storyProgressThumb.style.width = '100%'
+            progressBarPaused = false
+        }
+    }
+
+    const getProgressBarPercentage = () => {
+        return Number(getComputedStyle(storyProgressThumb).getPropertyValue('width').slice(0, -2)) * 100 / storyProgressLayout.offsetWidth
+    }
+
+    const storyCloseModal = () => {
+        storyModalWrapper.classList.remove('story-modal__wrapper_active')
+        clearInterval(storyAutoplayInterval)
+        clearTimeout(autoplayResumeTimeout)
+        progressBarPaused = false
+        storyAutoplayStarted = 0
+        storyPlayCurrentStarted = 0
+        storyAutoplayStopped = 0
+        storyTimePassed = 0
+        hideProducts(null, true)
     }
 
     const storyUgcsTouchUp = () => {
@@ -210,19 +296,20 @@ const storyWidgetInit = (className) => {
         e.preventDefault()
         const pageX = e.changedTouches ? e.changedTouches[0].pageX : e.pageX
         const x = pageX - storyUgcsContainer.offsetLeft
-        const walk = (x - storyUgcsStartX) * 2
+        const walk = (x - storyUgcsStartX) * storyUgcsScrollSpeed
         storyUgcsContainer.scrollLeft = storyUgcsScrollLeft - walk
     }
 
     const toggleFullScreen = (flag) => {
         return new Promise((resolve, reject) => {
+            const maxFullscreenWidth = 1024
+            const maxFullscreenHeight = 900
             if (document.body.requestFullscreen) {
                 if (flag) {
-                    if (window.innerWidth <= 568 || (window.innerHeight <= 665 && window.innerWidth <= 568)) {
+                    if (window.innerWidth <= maxFullscreenWidth || (window.innerHeight <= maxFullscreenHeight && window.innerWidth <= maxFullscreenWidth)) {
                         document.body.requestFullscreen().then(() => {
                             resolve()
                         }).catch(() => {
-                            console.log('Could not enter fullscreen mode')
                             resolve()
                         })
                     } else {
@@ -232,7 +319,6 @@ const storyWidgetInit = (className) => {
                     document.exitFullscreen().then(() => {
                         resolve()
                     }).catch(() => {
-                        console.log('Could not exit fullscreen mode')
                         resolve()
                     })
                 }
@@ -264,6 +350,8 @@ const storyWidgetInit = (className) => {
                 storySlideSwitch(i, true)
                 storyModalWrapper.classList.add('story-modal__wrapper_active')
                 storyLaunchAutoplay(autoplayDuration)
+                storyAutoplayStarted = Date.now()
+                storyPlayCurrentStarted = Date.now()
             })
         })
     })
@@ -294,11 +382,15 @@ const storyWidgetInit = (className) => {
             if (e.target.classList.contains('story-modal-products__wrapper')) {
                 e.stopImmediatePropagation()
                 hideProducts(e.target)
+                resumeAutoplay()
             }
         })
 
         const close = item.querySelector('.story-modal-products-close')
-        close.addEventListener('click', () => { hideProducts(item) })
+        close.addEventListener('click', () => {
+            hideProducts(item)
+            resumeAutoplay()
+        })
     })
 
     storyModalClose.addEventListener('click', () => {
