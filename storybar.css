@@ -364,7 +364,7 @@
 	color: #000;
 }
 
-@media (max-height: 900px), (max-width: 1024px) {
+@media (max-height: 667px), (max-width: 1024px) {
 	.story-modal__item, .story-modal, .story-modal-list {
 		height: 100%;
 	}
