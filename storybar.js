@@ -241,8 +241,12 @@ const storyWidgetInit = (className) => {
     }
 
     const pauseProgressBar = () => {
-        progressAfterPause = getComputedStyle(storyProgressThumb, null).getPropertyValue('width')
-        storyProgressThumb.style.width = progressAfterPause
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                progressAfterPause = getComputedStyle(storyProgressThumb, null).getPropertyValue('width')
+                storyProgressThumb.style.width = progressAfterPause
+            })
+        })
         progressBarPaused = true
     }
 
