@@ -58,7 +58,7 @@ const storyWidgetInit = (className) => {
                 resumeAutoplay()
                 return
             }
-            if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
+            if ((Math.abs(storyLastTouchDownX - getTouchX(e)) < storySwipeMin) && (Math.abs(storyLastTouchDownY - getTouchY(e)) < storySwipeMin)) {
                 slideDir = 'next'
                 if (getTouchX(e, true, true) >= swipeDirectionSeparatorPoint) {
                     slideDir = 'next'
