@@ -52,12 +52,13 @@ const storyWidgetInit = (className) => {
     const touchUp = (e) => {
         clearTimeout(swipeCancelTimeout)
         e.preventDefault()
-        if (Date.now() - lastTouchDownMillis > swipeCancelTime) {
-            return
-        }
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
             if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
+                if (Date.now() - lastTouchDownMillis > swipeCancelTime) {
+                    resumeAutoplay()
+                    return
+                }
                 slideDir = 'next'
                 if (getTouchX(e, true, true) >= swipeDirectionSeparatorPoint) {
                     slideDir = 'next'
@@ -65,7 +66,7 @@ const storyWidgetInit = (className) => {
                     slideDir = 'prev'
                 }
             } else {
-                if (Math.abs(storyLastTouchDownX - getTouchX(e)) < storySwipeMin) {
+                if ((Math.abs(storyLastTouchDownX - getTouchX(e)) < storySwipeMin) || (Date.now() - lastTouchDownMillis > swipeCancelTime)) {
                     return
                 }
                 slideDir = storyLastTouchDownX < getTouchX(e) ? 'prev' : 'next'
