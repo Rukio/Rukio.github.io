@@ -244,6 +244,7 @@ const storyWidgetInit = (className) => {
         setTimeout(() => {
             requestAnimationFrame(() => {
                 progressAfterPause = getComputedStyle(storyProgressThumb, null).getPropertyValue('width')
+                storyProgressThumb.setAttribute('style', '')
                 storyProgressThumb.style.width = progressAfterPause
             })
         })
