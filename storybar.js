@@ -54,11 +54,11 @@ const storyWidgetInit = (className) => {
         e.preventDefault()
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
+            if ((Date.now() - lastTouchDownMillis > swipeCancelTime) && (Math.abs(storyLastTouchDownX - getTouchX(e)) < 5)) {
+                resumeAutoplay()
+                return
+            }
             if (storyLastTouchDownX == getTouchX(e) && storyLastTouchDownY == getTouchY(e)) {
-                if (Date.now() - lastTouchDownMillis > swipeCancelTime) {
-                    resumeAutoplay()
-                    return
-                }
                 slideDir = 'next'
                 if (getTouchX(e, true, true) >= swipeDirectionSeparatorPoint) {
                     slideDir = 'next'
