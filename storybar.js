@@ -54,7 +54,7 @@ const storyWidgetInit = (className) => {
         e.preventDefault()
         if (e.target.classList.contains('story-modal-img__item') && storySlideIsDown) {
             let slideDir
-            if ((Date.now() - lastTouchDownMillis > swipeCancelTime) && (Math.abs(storyLastTouchDownX - getTouchX(e)) < 5)) {
+            if ((Date.now() - lastTouchDownMillis > swipeCancelTime) && (Math.abs(storyLastTouchDownX - getTouchX(e)) < storySwipeMin)) {
                 resumeAutoplay()
                 return
             }
