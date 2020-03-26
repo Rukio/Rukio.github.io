@@ -298,6 +298,10 @@
 	width: 300px;
 	background-color: #fff;
 	padding-top: 37px;
+	display: -webkit-box;
+	display: flex;
+	max-height: 100%;
+	overflow: hidden;
 }
 
 .story-modal-products__list {
@@ -390,6 +394,6 @@
 
 @media (max-height: 620px) {
 	.story-modal-products__list {
-		max-height: calc(100vh - 152px);
+		max-height: 100%;
 	}
 }
