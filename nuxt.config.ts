@@ -15,4 +15,7 @@ export default defineNuxtConfig({
     storesDirs: ['./store/**'],
   },
   target: 'static',
+  router: {
+    base: '/tenchat-test-nuxt/'
+  },
 })
