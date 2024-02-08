@@ -17,6 +17,6 @@ export default defineNuxtConfig({
   target: 'static',
   app: {
     baseURL: "/tenchat-test-nuxt/",
-    buildAssetsDir: "/",
+    cdnURL: "https://rukio.github.io/tenchat-test-nuxt"
   }
 })
