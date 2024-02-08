@@ -9,7 +9,7 @@
           'pb-2',
           'xl:pb-0',
           'pt-9',
-          'xl:pt-0',
+          'xl:pt-[100px]',
           'flex',
           'flex-1',
           'items-center',

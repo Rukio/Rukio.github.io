@@ -14,4 +14,5 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ['./store/**'],
   },
+  target: 'static',
 })
