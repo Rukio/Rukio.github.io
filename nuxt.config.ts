@@ -16,6 +16,7 @@ export default defineNuxtConfig({
   },
   target: 'static',
   app: {
-    baseURL: "/tenchat-test-nuxt/"
+    baseURL: "/tenchat-test-nuxt/",
+    buildAssetsDir: "/",
   }
 })
