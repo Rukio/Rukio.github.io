@@ -16,6 +16,6 @@ export default defineNuxtConfig({
   },
   target: 'static',
   router: {
-    base: '/tenchat-test-nuxt/'
+    base: '/tenchat-test-nuxt'
   },
 })
