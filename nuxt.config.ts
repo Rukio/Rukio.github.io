@@ -14,8 +14,5 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ['./store/**'],
   },
-  target: 'static',
-  app: {
-    baseURL: "/tenchat-test-nuxt",
-  }
+  target: 'static'
 })
